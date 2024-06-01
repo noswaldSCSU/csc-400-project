@@ -12,4 +12,6 @@ urlpatterns = [
     path('run-trial/', views.run_trial, name='run_trial'),
     path('save-response/', views.save_response, name='save_response'),
     path('experiment-complete/', views.experiment_complete, name='experiment_complete'),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

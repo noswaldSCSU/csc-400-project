@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Participant, Trial, Response
+from .models import Participant, Trial, Response, Word, Experiment
 
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
@@ -14,3 +14,12 @@ class TrialAdmin(admin.ModelAdmin):
 class ResponseAdmin(admin.ModelAdmin):
     list_display = ('participant', 'trial', 'response_time', 'accuracy')
     search_fields = ('participant__subject_id',)
+
+class WordInline(admin.TabularInline):
+    model = Word
+    extra = 1
+
+class ExperimentAdmin(admin.ModelAdmin):
+    inlines = [WordInline]
+
+admin.site.register(Experiment, ExperimentAdmin)

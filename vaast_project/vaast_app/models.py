@@ -30,3 +30,18 @@ class Response(models.Model):
 
     def __str__(self):
         return f"Response {self.id} by Participant {self.participant.subject_id}"
+
+
+class Experiment(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Word(models.Model):
+    experiment = models.ForeignKey(Experiment, related_name='words', on_delete=models.CASCADE)
+    word = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.word

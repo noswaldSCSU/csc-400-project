@@ -1,58 +1,89 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Experiment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAAST Experiment</title>
     <style>
-        .stimulus {
-            font-size: 2em;
-            text-align: center;
-            margin-top: 50px;
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            background: #f0f0f0;
         }
-        .fixation {
-            font-size: 3em;
+        h1 {
+            position: fixed;
+            top: 20px;
+            font-size: 36px;
+            color: #333;
+            margin: 0;
+        }
+        #word-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+        #word {
+            font-size: 40px; /* Larger initial font size */
             text-align: center;
-            margin-top: 50px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: font-size 0.5s ease, width 0.5s ease, height 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 400px; /* Larger initial width */
+            height: 200px; /* Larger initial height */
         }
     </style>
+</head>
+<body>
+    <h1>VAAST Experiment</h1>
+    <div id="word-container">
+        <div id="word"></div>
+    </div>
+
     <script>
-        let startTime;
+        const words = {{ words|safe }};
+        let currentWordIndex = 0;
+        let fontSize = 40; // Initial font size
+        const aspectRatio = 5; // Width to height ratio
 
-        function displayStimulus(stimulus) {
-            document.getElementById('stimulus').innerText = stimulus;
-            startTime = performance.now();
-        }
+        const wordElement = document.getElementById('word');
 
-        function captureResponse(event) {
-            const validKeys = ['Y', 'N'];
-            if (validKeys.includes(event.key.toUpperCase())) {
-                const responseTime = performance.now() - startTime;
-                document.getElementById('response-time').value = responseTime;
-                document.getElementById('response-key').value = event.key.toUpperCase();
-                document.getElementById('response-form').submit();
+        function displayWord() {
+            if (currentWordIndex < words.length) {
+                wordElement.textContent = words[currentWordIndex];
+                wordElement.style.fontSize = fontSize + 'px';
+                wordElement.style.width = (fontSize * aspectRatio) + 'px';
+                wordElement.style.height = (fontSize * 1.5) + 'px'; // Increase height for a better aspect ratio
+            } else {
+                wordElement.textContent = 'Experiment Complete';
             }
         }
 
-        window.addEventListener('keydown', captureResponse);
+        function handleKeyPress(event) {
+            if (event.key === 'y') {
+                fontSize += 6; // Increase font size
+            } else if (event.key === 'n') {
+                fontSize -= 6; // Decrease font size
+            } else {
+                return;
+            }
+            currentWordIndex++;
+            displayWord();
+        }
 
-        window.onload = function() {
-            const fixationTime = parseInt("{{ fixation_time }}");
-            const stimulus = "{{ stimulus }}";
-
-            setTimeout(() => {
-                document.getElementById('fixation').style.display = 'none';
-                displayStimulus(stimulus);
-            }, fixationTime);  // Show stimulus after fixation duration
-        };
+        document.addEventListener('keydown', handleKeyPress);
+        displayWord();
     </script>
-</head>
-<body>
-    <div class="fixation" id="fixation">+</div>
-    <div class="stimulus" id="stimulus" style="display: none;"></div>
-    <form id="response-form" method="POST" action="{% url 'save_response' %}">
-        {% csrf_token %}
-        <input type="hidden" name="response_time" id="response-time" value="">
-        <input type="hidden" name="response_key" id="response-key" value="">
-    </form>
 </body>
 </html>

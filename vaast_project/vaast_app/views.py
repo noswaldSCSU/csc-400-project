@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import RegisterParticipantForm
-from .models import Participant, Trial, Response
+from .models import Participant, Trial, Response, Experiment
 from django.views.decorators.csrf import csrf_exempt
 import random
 
@@ -102,6 +102,12 @@ def save_response(request):
         request.session['current_trial_index'] += 1
 
         return redirect('run_trial')
+
+
+def experiment_view(request, experiment_id):
+    experiment = Experiment.objects.get(id=experiment_id)
+    words = list(experiment.words.values_list('word', flat=True))
+    return render(request, 'experiment.html', {'words': words})
 
 # Experiment Complete View
 def experiment_complete(request):

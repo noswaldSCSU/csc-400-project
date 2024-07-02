@@ -5,85 +5,66 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.utils import timezone
 import random
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import json
 
-# Start Experiment View
-def start_experiment(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
-    trials = list(Trial.objects.all())
-    random.shuffle(trials)
-
-    request.session['participant_id'] = participant.id
-    request.session['trials'] = [trial.id for trial in trials]
-    request.session['current_trial_index'] = 0
-
-    return redirect('run_trial')
-
-# Save Response View
 @csrf_exempt
-def save_response(request):
+def create_trial_view(request):
     if request.method == 'POST':
-        participant = get_object_or_404(Participant, id=request.session['participant_id'])
-        current_trial_index = request.session['current_trial_index']
-        trial_ids = request.session['trials']
-        trial = get_object_or_404(Trial, id=trial_ids[current_trial_index])
+        try:
+            data = json.loads(request.body)
+            experiment = data.get('experiment')
+            participant_id = data.get('participant_id')
+            responses = data.get('responses')
+
+            trial = create_trial(experiment, participant_id, responses)
+            
+            return JsonResponse({'status': 'success', 'trial_id': str(trial.uuid)})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def create_trial(experiment, participant_id, responses):
+    # Find the experiment
+    try:
+        experiment = Experiment.objects.get(id=experiment)
+    except Experiment.DoesNotExist:
+        raise ValueError("Experiment does not exist.")
+
+    # Create a new trial
+    trial = Trial.objects.create(
+        experiment=experiment,
+        participant_id=participant_id,
+        trial_time=timezone.now()
+    )
+
+    # Create responses for the trial
+    for response in responses:
+        word_id = response['word']
+        user_response = response['key']
+        response_time = response['reaction_time']
         
-        response_time = float(request.POST['response_time'])
-        response_key = request.POST['response_key']
-
-        correct_response = 'Y' if trial.valence == 1 else 'N'
-        accuracy = 1 if response_key == correct_response else 0
-
-        Response.objects.create(
-            participant=participant,
-            trial=trial,
-            response_time=response_time,
-            accuracy=accuracy
-        )
-        
-        request.session['current_trial_index'] += 1
-
-        return redirect('run_trial')
-
-def start_trial(request):
-    if request.method == 'POST':
-        experiment_id = request.POST.get('experiment_id')
-        experiment = Experiment.objects.get(id=experiment_id)
-        trial = Trial.objects.create(
-            experiment=experiment,
-            participant_id='Participant001',  # Replace with actual participant ID
-            trial_time=timezone.now()  # Replace with the actual time of the trial
-        )
-        return JsonResponse({'trial_uuid': trial.uuid})
-
-    return JsonResponse({'status': 'error'}, status=400)
-
-def save_response(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        trial_uuid = data.get('trial_uuid')
-        word_id = data.get('word_id')
-        response = data.get('response')
-        response_time = data.get('response_time')
-
-        trial = Trial.objects.get(uuid=trial_uuid)
-        word = Word.objects.get(id=word_id)
+        try:
+            word = Word.objects.get(id=word_id, experiment=experiment)
+        except Word.DoesNotExist:
+            raise ValueError(f"Word with id {word_id} does not exist in experiment {experiment}.")
 
         Response.objects.create(
             trial=trial,
             word=word,
-            response=response,
+            response=user_response,
             response_time=response_time
         )
 
-        return JsonResponse({'status': 'ok'})
-
-    return JsonResponse({'status': 'error'}, status=400)
+    return trial
 
 def experiment_view(request, experiment_id):
     experiment = Experiment.objects.get(id=experiment_id)
     words = list(experiment.words.values_list('word', flat=True))
-    return render(request, 'experiment.html', {'words': words})
+    word_ids = list(experiment.words.values_list('id', flat=True))
+
+    return render(request, 'experiment.html',{'words': words, 'word_ids': word_ids})
 
 # Experiment Complete View
 def experiment_complete(request):

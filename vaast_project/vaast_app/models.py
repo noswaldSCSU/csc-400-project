@@ -4,7 +4,11 @@ from django.utils import timezone
 
 class Participant(models.Model):
     subject_id = models.CharField(max_length=100, unique=True)
-    extra_metadata = models.CharField(max_length=255, blank=True, null=True)
+    first_name = models.CharField(max_length=255, null=True)
+    last_name = models.CharField(max_length=255, null=True)
+    age = models.IntegerField(null=True)
+    gender = models.CharField(max_length=10, null=True)
+    extra_metadata = models.CharField(max_length=255, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -20,7 +24,7 @@ class Experiment(models.Model):
 class Trial(models.Model):
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE, related_name='trials')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    participant_id = models.CharField(max_length=100)  # Example of a participant ID field
+    participant_id = models.CharField(null=False, max_length=100)  # Example of a participant ID field
     trial_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

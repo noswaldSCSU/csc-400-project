@@ -55,14 +55,9 @@
 <body>
     <h1>VAAST Experiment</h1>
     <div id="intro" class="screen">
-        <p>Welcome to the VAAST Experiment</p>
-        <p>In this experiment, you'll be participating in a task designed to measure your automatic approach and avoidance behaviors. You'll be presented with various stimuli, such as words or images, and your task is to decide whether to "approach" or "avoid" each stimulus.</p>
-        <p>To make your decision:</p>
-        <p>Press <strong>Y</strong> if you would like to "approach" the stimulus.</p>
-        <p>Press <strong>N</strong> if you would like to "avoid" the stimulus.</p>
-        <p>Please try to respond as quickly and accurately as possible. Your responses will help us understand the underlying patterns of approach and avoidance behaviors.</p>
-        <p>The experiment will begin immediately upon any key press</p>
-        <p><strong>Press any key to begin</strong><p>
+        <p>Please enter your Participant ID:</p>
+        <input type="text" id="participant-id-input">
+        <button onclick="showIntro()">Start Experiment</button>
     </div>
     <div id="word-container" class="screen">
         <div id="word"></div>
@@ -70,22 +65,27 @@
 
     <script>
         const words = {{ words|safe }};
-        let currentWordIndex = 0;
+        const word_ids = {{ word_ids|safe }};
+
+        let currentWordIndex = -1;
         let fontSize = 40;
         const aspectRatio = 5;
         let startTime;
         let reactions = [];
+        let experimentId = 1;
+        let participantId;
+        let experimentStarted = false;
 
         const introElement = document.getElementById('intro');
         const wordContainer = document.getElementById('word-container');
         const wordElement = document.getElementById('word');
 
-        document.addEventListener('keydown', handleKeyPress);
 
         function displayWord() {
             introElement.style.display = 'none';
             wordContainer.style.display = 'flex';
 
+            currentWordIndex++;
             if (currentWordIndex < words.length) {
                 wordElement.textContent = words[currentWordIndex];
                 wordElement.style.fontSize = fontSize + 'px';
@@ -99,18 +99,27 @@
                 return;
             }
         }
-
+        
+        function startExperiment() {
+            experimentStarted = true
+            startTime = performance.now();
+            displayWord();
+        }
         function handleKeyPress(event) {
+            if (!experimentStarted) {
+                startExperiment()
+                return
+            }
             updateFontSize(event);
             displayWord();
             let reactionTime = performance.now() - startTime; // Calculate reaction time
             let reaction = {
-                word: words[currentWordIndex],
+                word: word_ids[currentWordIndex-1],
                 key: event.key,
-                reaction_time: reactionTime.toFixed(2) // Round to 2 decimal places
+                reaction_time: reactionTime // Round to 2 decimal places
             };
             reactions.push(reaction); // Store reaction data
-            currentWordIndex++;
+            startTime = performance.now();
         }
 
         function updateFontSize(event) {
@@ -124,13 +133,14 @@
         function showExperimentCompleteScreen() {
             const completeScreen = document.createElement('div');
             console.log(reactions)
-            completeScreen.className = 'screen';
+            completeScreen.className = 'intro';
             completeScreen.innerHTML = `
                 <p>Experiment Complete</p>
                 <p>Thank you for participating!</p>
                 <button onclick="downloadCSV()">Download CSV File</button>
             `;
             document.body.appendChild(completeScreen);
+            createTrial();
         }
         function convertToCSV(objArray) {
             const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
@@ -177,6 +187,47 @@
             // Remove the link from the document
             document.body.removeChild(link);
         };
+        function createTrial() {
+
+            fetch('/create_trial/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    experiment: 1,
+                    participant_id: participantId,
+                    responses: reactions 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Trial created successfully: ' + data.trial_id);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        function showIntro() {
+            document.addEventListener('keydown', handleKeyPress);
+            const element = document.getElementById('intro')
+            participantId = document.getElementById('participant-id-input').value
+            element.innerHTML = `
+            <p>Welcome to the VAAST Experiment</p>
+            <p>In this experiment, you'll be participating in a task designed to measure your automatic approach and avoidance behaviors. You'll be presented with various stimuli, such as words or images, and your task is to decide whether to "approach" or "avoid" each stimulus.</p>
+            <p>To make your decision:</p>
+            <p>Press <strong>Y</strong> if you would like to "approach" the stimulus.</p>
+            <p>Press <strong>N</strong> if you would like to "avoid" the stimulus.</p>
+            <p>Please try to respond as quickly and accurately as possible. Your responses will help us understand the underlying patterns of approach and avoidance behaviors.</p>
+            <p>The experiment will begin immediately upon any key press</p>
+            <p><strong>Press any key to begin</strong><p>
+        `
+        }
+
+
     </script>
 </body>
 

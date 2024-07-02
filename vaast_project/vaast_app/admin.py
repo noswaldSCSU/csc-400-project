@@ -1,19 +1,15 @@
 from django.contrib import admin
 from .models import Participant, Trial, Response, Word, Experiment
 
+#Removes django references from admin portal
+admin.site.site_header = "VAAST Experiment Dashboard"
+admin.site.site_title = "VAAST Experiment"
+admin.site.index_title = "Welcome to the VAAST Experiment Admin Dashboard"
+
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('subject_id', 'extra_metadata', 'created_at', 'updated_at')
     search_fields = ('subject_id',)
-
-@admin.register(Trial)
-class TrialAdmin(admin.ModelAdmin):
-    list_display = ('block_order', 'block_name', 'stimuli', 'valence', 'random_fixation', 'movement')
-
-@admin.register(Response)
-class ResponseAdmin(admin.ModelAdmin):
-    list_display = ('participant', 'trial', 'response_time', 'accuracy')
-    search_fields = ('participant__subject_id',)
 
 class WordInline(admin.TabularInline):
     model = Word

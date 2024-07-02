@@ -1,53 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import RegisterParticipantForm
-from .models import Participant, Trial, Response, Experiment
+from .models import Participant, Trial, Response, Experiment, Response, Word
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.utils import timezone
 import random
-
-# Register Participant View
-def register_participant(request):
-    if request.method == 'POST':
-        form = RegisterParticipantForm(request.POST)
-        if form.is_valid():
-            participant = form.save()
-            return redirect('participant_success', subject_id=participant.subject_id)
-    else:
-        form = RegisterParticipantForm()
-    return render(request, 'register_participant.html', {'form': form})
-
-# Success View after Registration
-def participant_success(request, subject_id):
-    return render(request, 'participant_success.html', {'subject_id': subject_id})
-
-# Manage Participants View
-def manage_participants(request):
-    participants = Participant.objects.all()
-    return render(request, 'manage_participants.html', {'participants': participants})
-
-# Participant Details View
-def participant_detail(request, participant_id):
-    participant = get_object_or_404(Participant, pk=participant_id)
-    return render(request, 'participant_detail.html', {'participant': participant})
-
-# Edit Participant View
-def edit_participant(request, participant_id):
-    participant = get_object_or_404(Participant, pk=participant_id)
-    if request.method == 'POST':
-        form = RegisterParticipantForm(request.POST, instance=participant)
-        if form.is_valid():
-            form.save()
-            return redirect('participant_detail', participant_id=participant.subject_id)
-    else:
-        form = RegisterParticipantForm(instance=participant)
-    return render(request, 'edit_participant.html', {'form': form})
-
-# Delete Participant View
-def delete_participant(request, participant_id):
-    participant = get_object_or_404(Participant, pk=participant_id)
-    if request.method == 'POST':
-        participant.delete()
-        return redirect('manage_participants')
-    return render(request, 'delete_participant.html', {'participant': participant})
+import json
 
 # Start Experiment View
 def start_experiment(request, participant_id):
@@ -60,22 +18,6 @@ def start_experiment(request, participant_id):
     request.session['current_trial_index'] = 0
 
     return redirect('run_trial')
-
-# Run Trial View
-def run_trial(request):
-    if 'current_trial_index' not in request.session:
-        return redirect('start_experiment', participant_id=request.session['participant_id'])
-
-    current_trial_index = request.session['current_trial_index']
-    trial_ids = request.session['trials']
-    
-    if current_trial_index >= len(trial_ids):
-        return redirect('experiment_complete')
-
-    trial = get_object_or_404(Trial, id=trial_ids[current_trial_index])
-    fixation_time = random.randint(800, 2000)  # Example fixation time
-    
-    return render(request, 'experiment.html', {'stimulus': trial.stimuli, 'fixation_time': fixation_time})
 
 # Save Response View
 @csrf_exempt
@@ -103,6 +45,40 @@ def save_response(request):
 
         return redirect('run_trial')
 
+def start_trial(request):
+    if request.method == 'POST':
+        experiment_id = request.POST.get('experiment_id')
+        experiment = Experiment.objects.get(id=experiment_id)
+        trial = Trial.objects.create(
+            experiment=experiment,
+            participant_id='Participant001',  # Replace with actual participant ID
+            trial_time=timezone.now()  # Replace with the actual time of the trial
+        )
+        return JsonResponse({'trial_uuid': trial.uuid})
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+def save_response(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        trial_uuid = data.get('trial_uuid')
+        word_id = data.get('word_id')
+        response = data.get('response')
+        response_time = data.get('response_time')
+
+        trial = Trial.objects.get(uuid=trial_uuid)
+        word = Word.objects.get(id=word_id)
+
+        Response.objects.create(
+            trial=trial,
+            word=word,
+            response=response,
+            response_time=response_time
+        )
+
+        return JsonResponse({'status': 'ok'})
+
+    return JsonResponse({'status': 'error'}, status=400)
 
 def experiment_view(request, experiment_id):
     experiment = Experiment.objects.get(id=experiment_id)

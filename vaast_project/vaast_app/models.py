@@ -1,4 +1,6 @@
 from django.db import models
+import uuid
+from django.utils import timezone
 
 class Participant(models.Model):
     subject_id = models.CharField(max_length=100, unique=True)
@@ -9,39 +11,34 @@ class Participant(models.Model):
     def __str__(self):
         return f"Participant {self.subject_id}"
 
-
-class Trial(models.Model):
-    block_order = models.IntegerField()  # e.g., 1 = compatible first, 2 = incompatible first
-    block_name = models.CharField(max_length=50)
-    stimuli = models.CharField(max_length=255)
-    valence = models.IntegerField()  # e.g., 1 = positive, 2 = negative
-    random_fixation = models.IntegerField()  # e.g., random fixation time in ms
-    movement = models.IntegerField()  # e.g., 1 = approach, 2 = avoidance
-
-    def __str__(self):
-        return f"Trial {self.id}: {self.stimuli}"
-
-
-class Response(models.Model):
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
-    trial = models.ForeignKey(Trial, on_delete=models.CASCADE)
-    response_time = models.FloatField()  # e.g., response time in ms
-    accuracy = models.IntegerField()  # 1 = correct, 0 = incorrect
-
-    def __str__(self):
-        return f"Response {self.id} by Participant {self.participant.subject_id}"
-
-
 class Experiment(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
+class Trial(models.Model):
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE, related_name='trials')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    participant_id = models.CharField(max_length=100)  # Example of a participant ID field
+    trial_time = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return str(self.uuid)
 
 class Word(models.Model):
-    experiment = models.ForeignKey(Experiment, related_name='words', on_delete=models.CASCADE)
-    word = models.CharField(max_length=50)
+    experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE, related_name='words')
+    word = models.CharField(max_length=100)
+    expected_response = models.BooleanField(default=False)
 
     def __str__(self):
         return self.word
+
+class Response(models.Model):
+    trial = models.ForeignKey(Trial, on_delete=models.CASCADE, related_name='responses')
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    response = models.CharField(max_length=1, null=False)  # 'y' or 'n'
+    response_time = models.FloatField(null=False)  # Response time in milliseconds
+
+    def __str__(self):
+        return f'{self.word.word} - {self.response} - {self.response_time}ms'

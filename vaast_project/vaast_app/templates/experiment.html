@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAAST Experiment</title>
+    <title>MAAT Experiment</title>
     <style>
         body, html {
             height: 100%;
@@ -36,13 +36,20 @@
             height: 100%;
             width: 100%;
         }
-        #word {
-            font-size: 40px;
+        .word {
+            font-size: 80px;
             text-align: center;
             padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 400px;
+            height: 200px;
+        }
+        .word-smaller {
+            font-size: 50px;
+            text-align: center;
+            padding: 20px;
             transition: font-size 0.5s ease, width 0.5s ease, height 0.5s ease;
             display: flex;
             justify-content: center;
@@ -50,121 +57,172 @@
             width: 400px;
             height: 200px;
         }
+        .word-bigger {
+            font-size: 140px;
+            text-align: center;
+            padding: 20px;
+            transition: font-size 0.5s ease, width 0.5s ease, height 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 400px;
+            height: 200px;
+        }
+        .word:not(.word-bigger),
+        .word:not(.word-smaller) {
+            transition: none; /* Disable transitions when switching off */
+        }
     </style>
 </head>
 <body>
-    <h1>VAAST Experiment</h1>
+    <h1>MAAT Experiment</h1>
     <div id="intro" class="screen">
         <p>Please enter your Participant ID:</p>
         <input type="text" id="participant-id-input">
         <button onclick="showIntro()">Start Experiment</button>
     </div>
     <div id="word-container" class="screen">
-        <div id="word"></div>
+        <div class='word' id="word"></div>
     </div>
 
     <script>
-        const words = {{ words|safe }};
-        const word_ids = {{ word_ids|safe }};
+const words = {{ words|safe }};
+const word_ids = {{ word_ids|safe }};
 
-        let currentWordIndex = -1;
-        let fontSize = 40;
-        const aspectRatio = 5;
-        let startTime;
-        let reactions = [];
-        let experimentId = 1;
-        let participantId;
-        let experimentStarted = false;
+const aspectRatio = 5;
+let currentWordIndex = -1;
+let fontSize = 50;
+let startTime;
+let reactions = [];
+let experimentId = 1;
+let participantId;
+let experimentStarted = false;
 
-        const introElement = document.getElementById('intro');
-        const wordContainer = document.getElementById('word-container');
-        const wordElement = document.getElementById('word');
+const introElement = document.getElementById('intro');
+const wordContainer = document.getElementById('word-container');
+const wordElement = document.getElementById('word');
 
+function displayWord() {
+    currentWordIndex++;
+    if (currentWordIndex < words.length) {
+        wordElement.textContent = words[currentWordIndex];
+    } else {
+        wordElement.textContent = 'Experiment Complete';
+        wordContainer.style.display = 'none'; // Hide word container
+        document.removeEventListener('keydown', handleKeyPress); // Remove the event listener
+        showExperimentCompleteScreen(); // Show experiment complete screen
+        return;
+    }
+}
 
-        function displayWord() {
-            introElement.style.display = 'none';
-            wordContainer.style.display = 'flex';
+async function startExperiment() {
+    experimentStarted = true;
+    // Reset the displayed word to '+' and display it
+    introElement.style.display = 'none';
+    wordContainer.style.display = 'flex';
 
-            currentWordIndex++;
-            if (currentWordIndex < words.length) {
-                wordElement.textContent = words[currentWordIndex];
-                wordElement.style.fontSize = fontSize + 'px';
-                wordElement.style.width = (fontSize * aspectRatio) + 'px';
-                wordElement.style.height = (fontSize * 1.5) + 'px';
-            } else {
-                wordElement.textContent = 'Experiment Complete';
-                wordContainer.style.display = 'none'; // Hide word container
-                document.removeEventListener('keydown', handleKeyPress); // Remove the event listener
-                showExperimentCompleteScreen(); // Show experiment complete screen
-                return;
-            }
-        }
+    wordElement.fontSize = fontSize + 'px';
+    wordElement.textContent = '+';
+
+    // Wait for 2 seconds
+    await delay(2000);
+
+    startTime = performance.now();
+    displayWord();
+    document.addEventListener('keydown', handleKeyPress);
+}
+
+async function updateFontSize(event) {
+    if (event.key === 'y') {
+        wordElement.classList.remove('word');
+        wordElement.classList.add('word-bigger');
         
-        function startExperiment() {
-            experimentStarted = true
-            startTime = performance.now();
-            displayWord();
-        }
-        function handleKeyPress(event) {
-            if (!experimentStarted) {
-                startExperiment()
-                return
-            }
-            updateFontSize(event);
-            displayWord();
-            let reactionTime = performance.now() - startTime; // Calculate reaction time
-            let reaction = {
-                word: word_ids[currentWordIndex-1],
-                key: event.key,
-                reaction_time: reactionTime // Round to 2 decimal places
-            };
-            reactions.push(reaction); // Store reaction data
-            startTime = performance.now();
-        }
+    } else if (event.key === 'n') {
+        wordElement.classList.remove('word');
+        wordElement.classList.add('word-smaller');
+    }
+}
 
-        function updateFontSize(event) {
-            if (event.key === 'y') {
-                fontSize += 6;
-            } else if (event.key === 'n') {
-                fontSize -= 6;
-            }
-        }
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-        function showExperimentCompleteScreen() {
-            const completeScreen = document.createElement('div');
-            console.log(reactions)
-            completeScreen.className = 'intro';
-            completeScreen.innerHTML = `
-                <p>Experiment Complete</p>
-                <p>Thank you for participating!</p>
-                <button onclick="downloadCSV()">Download CSV File</button>
-            `;
-            document.body.appendChild(completeScreen);
-            createTrial();
-        }
-        function convertToCSV(objArray) {
-            const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-            let str = '';
+async function handleKeyPress(event) {
+    if (!experimentStarted) {
+        document.removeEventListener('keydown', handleKeyPress)
+        startExperiment();
+        return;
+    }
 
-            // Add headers
-            let header = '';
-            for (let index in array[0]) {
-                if (header !== '') header += ',';
-                header += index;
-            }
-            str += header + '\r\n';
+    let reactionTime = performance.now() - startTime; // Calculate reaction time
+    document.removeEventListener('keydown', handleKeyPress);
 
-            // Add rows
-            for (let i = 0; i < array.length; i++) {
-                let line = '';
-                for (let index in array[i]) {
-                    if (line !== '') line += ',';
-                    line += array[i][index];
-                }
-                str += line + '\r\n';
-            }
-            return str;
+    await updateFontSize(event);
+    await delay(2000);
+
+    let reaction = {
+        word: word_ids[currentWordIndex],
+        key: event.key,
+        reaction_time: reactionTime // Round to 2 decimal places
+    };
+    reactions.push(reaction); // Store reaction data
+    
+    // Reset the displayed word to '+' and display it
+    wordElement.textContent = '+';
+    
+    wordElement.classList.remove('word-smaller');
+    wordElement.classList.remove('word-bigger');
+    wordElement.classList.add('word'); // Reset to the original class
+
+    // Wait for 3 seconds
+    await delay(2000);
+
+    // Then display the next word
+    
+    document.addEventListener('keydown', handleKeyPress)
+    displayWord();
+
+    startTime = performance.now();
+}
+
+function showExperimentCompleteScreen() {
+    const completeScreen = document.createElement('div');
+    console.log(reactions);
+    completeScreen.className = 'intro';
+    completeScreen.innerHTML = `
+        <p>Experiment Complete</p>
+        <p>Thank you for participating!</p>
+        <button onclick="downloadCSV()">Download CSV File</button>
+    `;
+    document.body.appendChild(completeScreen);
+    createTrial();
+}
+
+function convertToCSV(objArray) {
+    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+    let str = '';
+
+    // Add headers
+    let header = '';
+    for (let index in array[0]) {
+        if (header !== '') header += ',';
+        header += index;
+    }
+    str += header + '\r\n';
+
+    // Add rows
+    for (let i = 0; i < array.length; i++) {
+        let line = '';
+        for (let index in array[i]) {
+            if (line !== '') line += ',';
+            line += array[i][index];
         }
+        str += line + '\r\n';
+    }
+    return str;
+}
+
+// Add the keydown event listener to start the experiment
 
         function downloadCSV(){
             // Convert reactions to CSV string
@@ -217,12 +275,9 @@
             participantId = document.getElementById('participant-id-input').value
             element.innerHTML = `
             <p>Welcome to the VAAST Experiment</p>
-            <p>In this experiment, you'll be participating in a task designed to measure your automatic approach and avoidance behaviors. You'll be presented with various stimuli, such as words or images, and your task is to decide whether to "approach" or "avoid" each stimulus.</p>
-            <p>To make your decision:</p>
-            <p>Press <strong>Y</strong> if you would like to "approach" the stimulus.</p>
-            <p>Press <strong>N</strong> if you would like to "avoid" the stimulus.</p>
-            <p>Please try to respond as quickly and accurately as possible. Your responses will help us understand the underlying patterns of approach and avoidance behaviors.</p>
-            <p>The experiment will begin immediately upon any key press</p>
+            {% if instructions is not none %}
+             <p>{{ instructions }}</p>
+            {% endif %}
             <p><strong>Press any key to begin</strong><p>
         `
         }

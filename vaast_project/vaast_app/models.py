@@ -17,6 +17,7 @@ class Participant(models.Model):
 
 class Experiment(models.Model):
     name = models.CharField(max_length=100)
+    instructions = models.TextField(max_length=3000, null=True)
 
     def __str__(self):
         return self.name
@@ -33,8 +34,12 @@ class Trial(models.Model):
 class Word(models.Model):
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE, related_name='words')
     word = models.CharField(max_length=100)
-    expected_response = models.BooleanField(default=False)
-
+    expected_response = models.CharField(
+        max_length=1,
+        choices=[('y','Yes'), ('n','No')],
+        null=True,
+        blank=False  # Allow it to be blank if desired
+    )
     def __str__(self):
         return self.word
 

@@ -63,8 +63,9 @@ def experiment_view(request, experiment_id):
     experiment = Experiment.objects.get(id=experiment_id)
     words = list(experiment.words.values_list('word', flat=True))
     word_ids = list(experiment.words.values_list('id', flat=True))
+    instructions = experiment.instructions
 
-    return render(request, 'experiment.html',{'words': words, 'word_ids': word_ids})
+    return render(request, 'experiment.html',{'words': words, 'word_ids': word_ids, 'instructions': instructions})
 
 # Experiment Complete View
 def experiment_complete(request):

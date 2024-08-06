@@ -105,8 +105,18 @@ class TrialAdmin(admin.ModelAdmin):
 
 class ExperimentAdmin(admin.ModelAdmin):
     inlines = [WordInline]
-    list_display = ('id', 'name', 'link_to_experiment', 'display_image')  # Add display_image here
-    fields = ('name', 'image')  # Include the image field in the admin form
+    list_display = ('name', 
+        'instructions', 
+        'font_size', 
+        'font_size_change', 
+        'image', 
+        'is_remote')  # Add display_image here
+    fields = ('name', 
+        'instructions', 
+        'font_size', 
+        'font_size_change', 
+        'image', 
+        'is_remote')  # Include the image field in the admin form
 
     def link_to_experiment(self, obj):
         link = reverse('experiment', args=[obj.id])

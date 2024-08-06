@@ -18,6 +18,10 @@ class Participant(models.Model):
 class Experiment(models.Model):
     name = models.CharField(max_length=100)
     instructions = models.TextField(max_length=3000, null=True)
+    font_size = models.IntegerField(default=100)
+    font_size_change = models.FloatField(default=.6)
+    image = models.ImageField(upload_to='experiment_images/', blank=True, null=True)  # Add this line
+    is_remote = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

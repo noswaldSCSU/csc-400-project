@@ -64,8 +64,12 @@ def experiment_view(request, experiment_id):
     words = list(experiment.words.values_list('word', flat=True))
     word_ids = list(experiment.words.values_list('id', flat=True))
     instructions = experiment.instructions
+    font_size = experiment.font_size
+    font_size_change = experiment.font_size_change
+    font_size_small = font_size * (1 - font_size_change)
+    font_size_big = font_size * (1 + font_size_change)
 
-    return render(request, 'experiment.html',{'words': words, 'word_ids': word_ids, 'instructions': instructions})
+    return render(request, 'experiment.html',{'experiment': experiment,'words': words, 'word_ids': word_ids, 'instructions': instructions, 'font_size': font_size, 'font_size_small': font_size_small, 'font_size_big': font_size_big})
 
 # Experiment Complete View
 def experiment_complete(request):

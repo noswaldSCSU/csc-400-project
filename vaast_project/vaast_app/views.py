@@ -17,7 +17,6 @@ def create_trial_view(request):
             experiment = data.get('experiment')
             participant_id = data.get('participant_id')
             responses = data.get('responses')
-
             trial = create_trial(experiment, participant_id, responses)
             
             return JsonResponse({'status': 'success', 'trial_id': str(trial.uuid)})
@@ -36,7 +35,7 @@ def create_trial(experiment, participant_id, responses):
     trial = Trial.objects.create(
         experiment=experiment,
         participant_id=participant_id,
-        trial_time=timezone.now()
+        trial_time=timezone.now(),
     )
 
     # Create responses for the trial

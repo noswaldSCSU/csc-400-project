@@ -27,6 +27,13 @@
             color: #333;
             margin: 0;
         }
+        .intro {
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
         #intro {
             text-align: center;
             padding: 20px;
@@ -202,33 +209,47 @@ function showExperimentCompleteScreen() {
     createTrial();
 }
 
-function convertToCSV(objArray) {
-    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-    let str = '';
+        function convertToCSV(reactions) {
+            if (!Array.isArray(reactions) || reactions.length === 0) {
+                console.error('Invalid data format: reactions is not an array or is empty');
+                return '';
+            }
 
-    // Add headers
-    let header = '';
-    for (let index in array[0]) {
-        if (header !== '') header += ',';
-        header += index;
-    }
-    str += header + '\r\n';
+            let str = '';
 
-    // Add rows
-    for (let i = 0; i < array.length; i++) {
-        let line = '';
-        for (let index in array[i]) {
-            if (line !== '') line += ',';
-            line += array[i][index];
+            // Add headers
+            let header = [
+                'Experiment ID', 'Participant ID'
+            ];
+
+            // Add headers for each reaction
+            for (let i = 0; i < reactions.length; i++) {
+                header.push(`Word ${i + 1}`);
+                header.push(`Response ${i + 1}`);
+                header.push(`Response Time ${i + 1}`);
+            }
+
+            str += header.join(',') + '\r\n';
+
+            // Add single row with all reactions
+            let row = [
+                experimentId,
+                participantId || ''
+            ];
+
+            for (let i = 0; i < reactions.length; i++) {
+                const reaction = reactions[i];
+                row.push(reaction.word || '');
+                row.push(reaction.key || '');
+                row.push(reaction.reaction_time || '');
+            }
+
+            str += row.join(',') + '\r\n';
+
+            return str;
         }
-        str += line + '\r\n';
-    }
-    return str;
-}
 
-// Add the keydown event listener to start the experiment
-
-        function downloadCSV(){
+        function downloadCSV() {
             // Convert reactions to CSV string
             const csvString = convertToCSV(reactions);
 
@@ -248,7 +269,7 @@ function convertToCSV(objArray) {
 
             // Remove the link from the document
             document.body.removeChild(link);
-        };
+        }
         function createTrial() {
 
             fetch('/create_trial/', {
@@ -259,8 +280,9 @@ function convertToCSV(objArray) {
                 },
                 body: JSON.stringify({
                 experiment: {{experiment.id}},
-                    participant_id: participantId,
-                    responses: reactions 
+                participant_id: participantId,
+                responses: reactions, 
+                csv_data: convertToCSV(reactions)
                 })
             })
             .then(response => response.json())
@@ -278,7 +300,7 @@ function convertToCSV(objArray) {
             const element = document.getElementById('intro')
             participantId = document.getElementById('participant-id-input').value
             element.innerHTML = `
-            <p>Welcome to the MAAT Experiment</p>
+            <p>Welcome to the VAAST Experiment</p>
             {% if instructions is not none %}
              <p>{{ instructions }}</p>
             {% endif %}

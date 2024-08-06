@@ -31,6 +31,7 @@ class Trial(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     participant_id = models.CharField(null=False, max_length=100)  # Example of a participant ID field
     trial_time = models.DateTimeField(default=timezone.now)
+    csv_data = models.TextField(blank=True, null=True)  # New field to store CSV data
 
     def __str__(self):
         return str(self.uuid)

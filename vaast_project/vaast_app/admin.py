@@ -12,41 +12,53 @@ admin.site.site_title = "MAAT Experiment"
 admin.site.index_title = "Welcome to the MAAT Experiment Admin Dashboard"
 
 def export_as_csv(modeladmin, request, queryset):
-    # Define the response
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=trials_with_responses.csv'
 
-    # Create the CSV writer
     writer = csv.writer(response)
-
+    
     # Write the header row
     writer.writerow([
-        'Trial UUID', 'Experiment', 'Participant ID', 'Trial Time',
-        'Response Word', 'Response', 'Response Time'
+        'Trial UUID', 'Experiment ID', 'Participant ID', 'Trial Time',
+        'Word 1', 'Response 1', 'Response Time 1',
+        'Word 2', 'Response 2', 'Response Time 2',
+        # Add more columns if you expect more words/responses
     ])
 
-    # Write the data rows
     for trial in queryset:
         # Get all responses for the current trial
         responses = trial.responses.all()
-        if responses:
-            for response in responses:
-                writer.writerow([
-                    trial.uuid, trial.experiment, trial.participant_id, trial.trial_time,
-                    response.word.word, response.response, response.response_time
+        
+        # Prepare the row data
+        row = [
+            trial.uuid,
+            trial.experiment.id if trial.experiment else '',
+            trial.participant_id,
+            trial.trial_time
+        ]
+        
+        # Add responses to the row, limit to a maximum of 10 responses for this example
+        max_responses = 10
+        for i in range(max_responses):
+            if i < len(responses):
+                response = responses[i]
+                row.extend([
+                    response.word.word if response.word else '',
+                    response.response,
+                    response.response_time
                 ])
-        else:
-            # If there are no responses, write a row with empty response fields
-            writer.writerow([
-                trial.uuid, trial.experiment, trial.participant_id, trial.trial_time,
-                '', '', ''
-            ])
-
+            else:
+                # Fill in empty fields if there are fewer responses than max_responses
+                row.extend(['', '', ''])
+        
+        writer.writerow(row)
+    print(response)
     return response
 
 export_as_csv.short_description = 'Export selected trials and responses as CSV'
 
 @admin.register(Participant)
+
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('subject_id','first_name', 'last_name', 'age')
     search_fields = ('subject_id', 'first_name')

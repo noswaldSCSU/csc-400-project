@@ -1,0 +1,13 @@
+{% extends "maat_app/base.html" %}
+{% block title %}Define Trials{% endblock %}
+{% block content %}
+<h2>Define Trials - Step 3</h2>
+<form method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% for form in formset %}
+        {{ form.as_p }}
+    {% endfor %}
+    <button type="submit">Finish</button>
+</form>
+{% endblock %}

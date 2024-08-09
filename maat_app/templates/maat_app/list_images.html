@@ -1,0 +1,17 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}List of Images{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Uploaded Images</h2>
+    <ul>
+    {% for image in images %}
+        <li>
+            <img src="{{ image.image.url }}" alt="{{ image.title }}" style="max-width: 200px;"/>
+            <p>{{ image.title }}</p>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

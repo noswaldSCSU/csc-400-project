@@ -1,0 +1,14 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Researcher Login{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Researcher Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+</div>
+{% endblock %}

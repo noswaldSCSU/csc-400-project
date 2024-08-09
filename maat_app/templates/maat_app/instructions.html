@@ -1,0 +1,27 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Instructions{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Experiment Instructions</h2>
+    <p>{{ instructions }}</p>
+    <form id="instruction-form" method="POST" action="{% url 'start_experiment' participant.id experiment.id %}">
+        {% csrf_token %}
+        <button type="button" onclick="startExperiment()">Start Experiment</button>
+    </form>
+</div>
+
+<script>
+function startExperiment() {
+    const form = document.getElementById('instruction-form');
+    const formAction = form.getAttribute('action');
+
+    // Open a new window in full screen mode
+    const windowFeatures = `top=0,left=0,width=${screen.width},height=${screen.height},toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no`;
+    const newWindow = window.open(formAction, 'ExperimentWindow', windowFeatures);
+    newWindow.moveTo(0, 0);  // Move to top left corner
+    newWindow.resizeTo(screen.width, screen.height);  // Resize to full screen
+}
+</script>
+{% endblock %}

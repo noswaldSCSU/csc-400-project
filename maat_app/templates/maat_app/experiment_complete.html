@@ -1,0 +1,17 @@
+{% extends "maat_app/base_popup.html" %}
+
+{% block title %}Experiment Complete{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Experiment Complete</h2>
+    <p>Thank you for participating!</p>
+</div>
+
+<script>
+    // Auto-close the window after 5 seconds
+    setTimeout(() => {
+        window.close();
+    }, 5000);
+</script>
+{% endblock %}

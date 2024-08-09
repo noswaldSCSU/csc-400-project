@@ -1,0 +1,24 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Select Image{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Select an Image for Background</h2>
+    <form method="POST" action="{% url 'apply_image_selection' %}">
+        {% csrf_token %}
+        <ul>
+        {% for image in images %}
+            <li>
+                <input type="radio" id="image_{{ image.id }}" name="selected_image" value="{{ image.id }}">
+                <label for="image_{{ image.id }}">
+                    <img src="{{ image.image.url }}" alt="{{ image.title }}" width="100">
+                    {{ image.title }}
+                </label>
+            </li>
+        {% endfor %}
+        </ul>
+        <button type="submit">Select Image</button>
+    </form>
+</div>
+{% endblock %}

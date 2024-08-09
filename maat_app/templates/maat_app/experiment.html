@@ -1,0 +1,103 @@
+{% extends "maat_app/base_popup.html" %}
+
+{% block title %}Experiment{% endblock %}
+
+{% block content %}
+<div class="content" id="experiment-content" 
+     style="background-color: {{ params.background_color }}; background-image: url({{ params.background_image_url }}); width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    
+    <!-- Fixation Point -->
+    <div id="fixation" style="font-size: 3em; color: white; display: none;">+</div>
+
+    <!-- Stimulus -->
+    <div id="stimulus" class="stimulus" 
+         style="font-size: {{ params.text_size }}%; color: white; display: none;">{{ stimulus }}</div>
+
+    <!-- Form for Capturing Responses -->
+    <form id="response-form" method="POST" action="{% url 'save_response' %}">
+        {% csrf_token %}
+        <input type="hidden" name="response_time" id="response-time" value="">
+        <input type="hidden" name="response_key" id="response-key" value="">
+    </form>
+</div>
+
+<!-- CSS for Improved Layout and Styling -->
+<style>
+    html, body {
+        margin: 0; /* Remove default margins */
+        padding: 0; /* Remove default paddings */
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        overflow: hidden; /* Disable scrollbars */
+    }
+    #experiment-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+        overflow: hidden; /* Ensure no scrollbars */
+    }
+    .stimulus, #fixation {
+        font-size: 3em;
+        color: white;
+    }
+</style>
+
+<script>
+let startTime;
+let currentTextSize = {{ params.text_size }};
+const textSizeIncrease = {{ params.text_increase_size }};
+const textSizeDecrease = {{ params.text_decrease_size }};
+const displayDurationAfterResize = 1000; // Duration in milliseconds to display stimuli after resizing
+let fixationElement = document.getElementById('fixation');
+let stimulusElement = document.getElementById('stimulus');
+let experimentContent = document.getElementById('experiment-content');
+let responseCaptured = false;
+
+function displayFixation() {
+    fixationElement.style.display = 'block';
+    setTimeout(displayStimulus, {{ params.random_fixation }});  // Random fixation time
+}
+
+function displayStimulus() {
+    fixationElement.style.display = 'none';
+    stimulusElement.style.display = 'block';
+    startTime = performance.now();
+}
+
+function captureResponse(event) {
+    if (responseCaptured) return; // Prevent multiple captures
+    
+    const validKeys = ['Y', 'N'];
+    if (validKeys.includes(event.key.toUpperCase())) {
+        responseCaptured = true;
+        const responseTime = performance.now() - startTime;
+        document.getElementById('response-time').value = responseTime.toFixed(2);
+        document.getElementById('response-key').value = event.key.toUpperCase();
+
+        // Adjust text size based on response key
+        if (event.key.toUpperCase() === 'Y') {
+            currentTextSize += textSizeIncrease;
+        } else if (event.key.toUpperCase() === 'N') {
+            currentTextSize -= textSizeDecrease;
+        }
+
+        // Apply new text size
+        stimulusElement.style.fontSize = `${currentTextSize}%`;
+
+        // Provide visual feedback
+        stimulusElement.style.backgroundColor = 'rgba(0, 255, 0, 0.3)';
+        
+        // Delay form submission to allow stimuli to be displayed for longer
+        setTimeout(() => {
+            document.getElementById('response-form').submit();
+        }, displayDurationAfterResize);
+    }
+}
+
+window.addEventListener('keydown', captureResponse);
+window.onload = displayFixation;
+</script>
+{% endblock %}

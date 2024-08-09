@@ -1,0 +1,41 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Create Experiment{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Create New Experiment</h2>
+    <form id="experiment-form" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <h3>Trials</h3>
+        {{ trial_formset.management_form }}
+        <div id="trial-forms">
+            {% for form in trial_formset %}
+                <div class="trial-form">{{ form.as_p }}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="button">Create Experiment</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('id_num_trials').addEventListener('change', function() {
+    const num_trials = parseInt(this.value);
+    const trialFormsContainer = document.getElementById('trial-forms');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    if (num_trials && num_trials > 0) {
+        const currentForms = trialFormsContainer.children.length;
+        if (num_trials > currentForms) {
+            for (let i = currentForms; i < num_trials; i++) {
+                const newFormIdx = i;
+                const newForm = trialFormsContainer.children[0].cloneNode(true);
+                newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, newFormIdx);
+                trialFormsContainer.appendChild(newForm);
+            }
+        }
+        totalForms.value = num_trials;
+    }
+});
+</script>
+{% endblock %}

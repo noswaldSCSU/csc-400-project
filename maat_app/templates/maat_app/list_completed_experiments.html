@@ -1,0 +1,17 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Completed Experiments{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>Completed Experiments</h2>
+    <ul>
+        {% for experiment in experiments %}
+            <li>
+                {{ experiment.name }} - {{ experiment.description }}
+                <a href="{% url 'export_experiment_csv' experiment.id %}" class="button">Download CSV</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

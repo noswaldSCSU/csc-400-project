@@ -1,0 +1,103 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Researcher Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Researcher Dashboard</h2>
+    <div class="row">
+        
+        <!-- Manage Experiments Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Manage Experiments
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'create_experiment_step1' %}" class="btn btn-primary mb-2">Create New Experiment</a>
+                    <ul class="list-group">
+                        {% for experiment in experiments %}
+                        <li class="list-group-item">
+                            <strong>{{ experiment.name }}</strong>
+                            <div class="btn-group mr-2" role="group" aria-label="Experiment Actions">
+                                <a href="{% url 'edit_experiment' experiment.id %}" class="btn btn-secondary">Edit</a>
+                                <a href="{% url 'delete_experiment' experiment.id %}" class="btn btn-danger delete-btn">Delete</a>
+                                <a href="{% url 'export_experiment_csv' experiment.id %}" class="btn btn-info">Export Data</a>
+                            </div>
+                            <ul class="list-group mt-2">
+                                {% for trial in experiment.trials.all %}
+                                <li class="list-group-item">
+                                    {{ trial.stimuli }}
+                                    <div class="btn-group mr-2" role="group" aria-label="Trial Actions">
+                                        <a href="{% url 'edit_trial' trial.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                                        <a href="{% url 'delete_trial' trial.id %}" class="btn btn-danger btn-sm delete-btn">Delete</a>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Participants Section -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    Manage Participants
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'register_participant' %}" class="btn btn-primary mb-2">Register New Participant</a>
+                    <ul class="list-group">
+                        {% for participant in participants %}
+                        <li class="list-group-item">
+                            <strong>{{ participant.subject_id }}</strong>
+                            <div class="btn-group mr-2" role="group" aria-label="Participant Actions">
+                                <a href="{% url 'edit_participant' participant.id %}" class="btn btn-secondary">Edit</a>
+                                <a href="{% url 'delete_participant' participant.id %}" class="btn btn-danger delete-btn">Delete</a>
+                                <a href="{% url 'export_participant_csv' participant.id %}" class="btn btn-info">Export Data</a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Deletion Confirmation Modal -->
+<div class="modal fade" id="deletionModal" tabindex="-1" aria-labelledby="deletionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletionModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this item?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('.delete-btn').on('click', function() {
+        var href = $(this).attr('href');
+        $('#confirmDeleteBtn').attr('href', href);
+        $('#deletionModal').modal('show');
+        return false;
+    });
+});
+</script>
+{% endblock %}

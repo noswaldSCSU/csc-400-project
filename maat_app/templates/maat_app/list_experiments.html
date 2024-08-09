@@ -1,0 +1,15 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}List of Experiments{% endblock %}
+
+{% block content %}
+<div class="content">
+    <h2>List of Experiments</h2>
+    <ul>
+        {% for experiment in experiments %}
+            <li>{{ experiment.name }} - {{ experiment.description }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'create_experiment_step1' %}" class="button">Create New Experiment</a>
+</div>
+{% endblock %}

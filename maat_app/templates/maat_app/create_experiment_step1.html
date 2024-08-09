@@ -1,0 +1,12 @@
+{% extends "maat_app/base.html" %}
+
+{% block title %}Create Experiment - Step 1{% endblock %}
+
+{% block content %}
+<h2>Create New Experiment - Step 1</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Next</button>
+</form>
+{% endblock %}

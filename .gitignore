@@ -1,0 +1,97 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.swp
+*~
+.coverage
+.coverage.*
+.cache
+cover/
+htmlcov/
+.tox/
+.nox/
+.throwaway/
+local_settings.py
+db.sqlite3  # Ignore SQLite database file if you are using it
+# Ignore the database configuration file.
+settings.py
+
+# Virtual Environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Global settings
+GLOBALS/  # Ignore global settings
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django development environment files
+.env
+
+# Settings File should be manually updated on server
+settings.py
+
+# SQL backup files
+*.sql
+
+# Media files (user-uploaded content)
+media/
+
+# Ignore system-specific directories and files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files and project workspace settings
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project

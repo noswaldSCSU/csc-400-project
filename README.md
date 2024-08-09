@@ -4,7 +4,6 @@
 <strong>Semester:</strong> Summer 2024 <br>
 
 Demonstrated Prototype: http://198.211.117.92:8000/admin/ <br>
-UI Prototype: http://45.55.126.146 <br>
 
 Please see FinalReport.pdf
 

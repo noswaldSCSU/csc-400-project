@@ -7,4 +7,4 @@ Demonstrated Prototype: http://198.211.117.92:8000/admin/ <br>
 
 Please see FinalReport.pdf
 
-[FinalReport.pdf]([https://github.com/user-attachments/files/16565974/FinalReport.pdf](https://github.com/noswaldSCSU/csc-400-project/blob/main/FinalReport.pdf))
+[FinalReport.pdf](https://github.com/noswaldSCSU/csc-400-project/blob/main/FinalReport.pdf)
